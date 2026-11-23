@@ -1,0 +1,169 @@
+%% Diagrama de clases (2/2): adapters/ y cómo implementan los puertos del núcleo.
+classDiagram
+    direction TB
+
+    namespace ports {
+        class MetricsProvider {
+            <<interface>>
+            +get_metrics()* dict~str,float~
+        }
+        class AlertObserver {
+            <<interface>>
+            +update(alerta: Alert)* None
+        }
+        class ConfigProvider {
+            <<interface>>
+            +get_thresholds()* dict~str,float~
+            +check_interval_seconds()* float
+        }
+    }
+
+    namespace adapters_metricas {
+        class LegacyMonitoringApi {
+            <<Adaptee>>
+            +fetch_stats() dict
+        }
+        class CloudMetricsApi {
+            <<Adaptee>>
+            +query() dict
+        }
+        class LegacyApiAdapter {
+            <<Adapter>>
+            -LegacyMonitoringApi _api
+            +get_metrics() dict~str,float~
+        }
+        class CloudApiAdapter {
+            <<Adapter>>
+            -CloudMetricsApi _api
+            +get_metrics() dict~str,float~
+        }
+    }
+
+    namespace adapters_canales {
+        class EmailAlert {
+            <<ConcreteObserver>>
+            -str _destinatario
+            +update(alerta: Alert) None
+        }
+        class SlackAlert {
+            <<ConcreteObserver>>
+            -str _canal
+            +update(alerta: Alert) None
+        }
+        class LogAlert {
+            <<ConcreteObserver>>
+            -Logger _logger
+            +update(alerta: Alert) None
+        }
+    }
+
+    namespace adapters_config {
+        class MonitoringConfig {
+            <<Singleton>>
+            -MonitoringConfig _instancia$
+            -Lock _candado_creacion$
+            -Lock _candado_datos
+            -dict~str,float~ _umbrales
+            -float _intervalo_segundos
+            +get_threshold(metrica: str) float
+            +set_threshold(metrica: str, porcentaje: float) None
+            +get_thresholds() dict~str,float~
+            +check_interval_seconds() float
+        }
+        class JsonConfigLoader {
+            -MonitoringConfig _config
+            -Registries _registros
+            +load_file(ruta: Path) SystemDefinition
+            +load(datos: dict) SystemDefinition
+        }
+        class SystemDefinition {
+            +list~AlertObserver~ canales
+            +list~ServiceDefinition~ servicios
+        }
+        class ServiceDefinition {
+            +str nombre
+            +MetricsProvider proveedor
+            +dict~str,EvaluationRule~ reglas
+        }
+    }
+
+    namespace adapters_fabricas {
+        class Factory~T~ {
+            <<abstract Creator>>
+            +create(parametros: dict)* T
+        }
+        class FactoryRegistry~T~ {
+            -str _familia
+            -dict~str,Factory~ _fabricas
+            +register(tipo: str, fabrica: Factory) None
+            +types() list~str~
+            +create(especificacion: dict) T
+        }
+        class Registries {
+            +FactoryRegistry canales
+            +FactoryRegistry proveedores
+            +FactoryRegistry reglas
+        }
+        class EmailChannelFactory {
+            <<ConcreteCreator>>
+        }
+        class SlackChannelFactory {
+            <<ConcreteCreator>>
+        }
+        class LogChannelFactory {
+            <<ConcreteCreator>>
+        }
+        class LegacyProviderFactory {
+            <<ConcreteCreator>>
+        }
+        class CloudProviderFactory {
+            <<ConcreteCreator>>
+        }
+        class ThresholdRuleFactory {
+            <<ConcreteCreator>>
+        }
+        class MovingAverageRuleFactory {
+            <<ConcreteCreator>>
+        }
+        class SpikeRuleFactory {
+            <<ConcreteCreator>>
+        }
+    }
+
+    %% Adapter
+    LegacyApiAdapter ..|> MetricsProvider
+    CloudApiAdapter ..|> MetricsProvider
+    LegacyApiAdapter --> LegacyMonitoringApi : traduce
+    CloudApiAdapter --> CloudMetricsApi : traduce
+
+    %% Observer
+    EmailAlert ..|> AlertObserver
+    SlackAlert ..|> AlertObserver
+    LogAlert ..|> AlertObserver
+
+    %% Singleton
+    MonitoringConfig ..|> ConfigProvider
+    MonitoringConfig --> MonitoringConfig : _instancia
+
+    %% Factory Method
+    EmailChannelFactory --|> Factory
+    SlackChannelFactory --|> Factory
+    LogChannelFactory --|> Factory
+    LegacyProviderFactory --|> Factory
+    CloudProviderFactory --|> Factory
+    ThresholdRuleFactory --|> Factory
+    MovingAverageRuleFactory --|> Factory
+    SpikeRuleFactory --|> Factory
+    EmailChannelFactory ..> EmailAlert : crea
+    SlackChannelFactory ..> SlackAlert : crea
+    LogChannelFactory ..> LogAlert : crea
+    LegacyProviderFactory ..> LegacyApiAdapter : crea
+    CloudProviderFactory ..> CloudApiAdapter : crea
+    FactoryRegistry o-- "1..*" Factory : tipo a fábrica
+    Registries *-- "3" FactoryRegistry
+
+    %% Carga de configuración
+    JsonConfigLoader --> Registries : usa
+    JsonConfigLoader --> MonitoringConfig : aplica umbrales
+    JsonConfigLoader ..> SystemDefinition : retorna
+    SystemDefinition *-- "0..*" ServiceDefinition

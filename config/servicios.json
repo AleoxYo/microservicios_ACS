@@ -1,0 +1,25 @@
+{
+  "monitoreo": {
+    "intervalo_segundos": 0.5,
+    "umbrales": { "cpu": 80, "memoria": 85 }
+  },
+  "canales": [
+    { "tipo": "email", "destinatario": "ops@fintech.com" },
+    { "tipo": "slack", "canal": "#alertas" },
+    { "tipo": "log" }
+  ],
+  "servicios": [
+    {
+      "nombre": "servicio-pagos",
+      "proveedor": { "tipo": "legacy", "muestras_cpu": [85, 60, 92] }
+    },
+    {
+      "nombre": "servicio-autenticacion",
+      "proveedor": {
+        "tipo": "cloud",
+        "muestras": [[0.45, 0.70], [0.82, 0.91], [0.30, 0.50]]
+      },
+      "reglas": { "cpu": { "tipo": "umbral" }, "memoria": { "tipo": "umbral" } }
+    }
+  ]
+}

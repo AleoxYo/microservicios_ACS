@@ -1,0 +1,57 @@
+%% Diagrama de componentes: arquitectura Hexagonal (Puertos y Adaptadores).
+%% Las flechas son dependencias de código (import) y siempre apuntan hacia el dominio.
+flowchart LR
+    JSON[/"config/servicios.json"/]
+
+    subgraph ROOT["Composition root"]
+        MAIN["main.py"]
+    end
+
+    subgraph ADAPTERS["adapters/ (infraestructura)"]
+        direction TB
+        LOADER["JsonConfigLoader<br/>+ fábricas (Factory Method)"]
+        METRICS["LegacyApiAdapter<br/>CloudApiAdapter<br/>(Adapter)"]
+        APIS["LegacyMonitoringApi<br/>CloudMetricsApi<br/>(APIs externas)"]
+        CHANNELS["EmailAlert · SlackAlert · LogAlert<br/>(Concrete Observers)"]
+        CONFIG["MonitoringConfig<br/>(Singleton)"]
+    end
+
+    subgraph HEX["Núcleo (hexágono)"]
+        direction TB
+        subgraph APP["application/"]
+            FACADE["MonitoringFacade<br/>(Facade, puerto de entrada)"]
+            MONITOR["ServiceMonitor<br/>(Subject)"]
+        end
+        subgraph PORTS["ports/"]
+            P1(["MetricsProvider"])
+            P2(["AlertObserver"])
+            P3(["ConfigProvider"])
+        end
+        subgraph DOMAIN["domain/"]
+            MS["Microservice + ServiceState<br/>(State)"]
+            EV["MetricEvaluator + EvaluationRule<br/>(Strategy)"]
+            AL["Alert · Severity · Violation"]
+        end
+    end
+
+    MAIN --> LOADER
+    MAIN --> FACADE
+    LOADER -. lee .-> JSON
+    LOADER --> METRICS
+    LOADER --> CHANNELS
+    LOADER --> CONFIG
+    METRICS --> APIS
+
+    METRICS -- implementa --> P1
+    CHANNELS -- implementa --> P2
+    CONFIG -- implementa --> P3
+
+    FACADE --> MONITOR
+    MONITOR --> P1
+    MONITOR --> P2
+    MONITOR --> P3
+    MONITOR --> MS
+    MONITOR --> EV
+    P2 --> AL
+    MS --> AL
+    EV --> AL

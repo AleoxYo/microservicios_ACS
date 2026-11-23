@@ -1,0 +1,43 @@
+%% Diagrama de secuencia: un ciclo de monitoreo de un servicio.
+%% Recorre los patrones en orden: Facade -> Adapter -> Strategy -> State -> Observer.
+sequenceDiagram
+    autonumber
+    actor Ops as Operaciones
+    participant F as MonitoringFacade<br/>«Facade»
+    participant M as ServiceMonitor<br/>«Subject»
+    participant P as LegacyApiAdapter<br/>«Adapter»
+    participant API as LegacyMonitoringApi
+    participant C as MonitoringConfig<br/>«Singleton» (vía ConfigProvider)
+    participant E as MetricEvaluator<br/>«Context Strategy»
+    participant R as EvaluationRule<br/>«Strategy»
+    participant S as Microservice<br/>«Context State»
+    participant ST as ServiceState<br/>«State»
+    participant O as AlertObserver<br/>«Observer» (Email/Slack/Log)
+
+    Ops->>F: run_monitoring(ciclos=1)
+    loop por cada servicio registrado
+        F->>M: check()
+        M->>P: get_metrics()
+        P->>API: fetch_stats()
+        API-->>P: {"cpu_usage_percent": 85}
+        P-->>M: {"cpu": 85.0}
+        M->>C: get_thresholds()
+        C-->>M: {"cpu": 80.0, "memoria": 85.0}
+        M->>E: evaluate(metricas, umbrales)
+        E->>E: agrega la lectura al historial
+        E->>R: evaluate(historial, umbral)
+        R-->>E: Violation(85.0, 80.0) | None
+        E-->>M: alertas detectadas
+        M->>S: record_cycle(detectadas)
+        S->>ST: on_cycle(detectadas)
+        ST-->>S: estado siguiente (p. ej. DegradedState)
+        S->>ST: emit(detectadas)
+        ST-->>S: alertas con severidad (o [] si MANTENIMIENTO)
+        S-->>M: alertas emitidas
+        loop por cada alerta y cada canal suscrito
+            M->>O: update(alerta)
+            Note over M,O: si un canal falla se registra en el log<br/>y se sigue con los demás (A5)
+        end
+        M-->>F: alertas emitidas
+    end
+    F-->>Ops: lista de alertas

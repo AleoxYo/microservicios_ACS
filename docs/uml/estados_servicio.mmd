@@ -1,0 +1,17 @@
+%% Patrón State: transiciones de ServiceState (domain/service_state.py).
+stateDiagram-v2
+    [*] --> SALUDABLE
+    SALUDABLE --> DEGRADADO : ciclo con alerta
+    DEGRADADO --> DEGRADADO : alerta (ciclos_en_alerta < 3)
+    DEGRADADO --> CRITICO : 3 ciclos seguidos con alerta
+    DEGRADADO --> SALUDABLE : ciclo sano
+    CRITICO --> CRITICO : alerta, o 1 solo ciclo sano
+    CRITICO --> SALUDABLE : 2 ciclos sanos seguidos (histéresis)
+    SALUDABLE --> MANTENIMIENTO : start_maintenance()
+    DEGRADADO --> MANTENIMIENTO : start_maintenance()
+    CRITICO --> MANTENIMIENTO : start_maintenance()
+    MANTENIMIENTO --> SALUDABLE : end_maintenance()
+
+    note right of DEGRADADO : emite alertas con severidad ADVERTENCIA
+    note right of CRITICO : emite alertas con severidad CRITICA
+    note left of MANTENIMIENTO : lee métricas pero no emite alertas

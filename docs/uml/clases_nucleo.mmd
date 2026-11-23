@@ -1,0 +1,155 @@
+%% Diagrama de clases (1/2): núcleo del hexágono = domain + ports + application.
+%% El estereotipo indica el rol de cada clase en su patrón.
+classDiagram
+    direction TB
+
+    namespace application {
+        class MonitoringFacade {
+            <<Facade>>
+            -dict~str,ServiceMonitor~ _monitores
+            -list~AlertObserver~ _canales
+            -ConfigProvider _config
+            +add_alert_channel(canal: AlertObserver) None
+            +register_service(nombre, proveedor, reglas) None
+            +run_monitoring(ciclos: int = 1) list~Alert~
+            +get_status() dict~str,str~
+            +start_maintenance(nombre: str) None
+            +end_maintenance(nombre: str) None
+        }
+        class ServiceMonitor {
+            <<Subject>>
+            -Microservice _servicio
+            -MetricsProvider _proveedor
+            -ConfigProvider _config
+            -MetricEvaluator _evaluador
+            -list~AlertObserver~ _observadores
+            +attach(observador: AlertObserver) None
+            +detach(observador: AlertObserver) None
+            +notify(alerta: Alert) None
+            +check() list~Alert~
+        }
+    }
+
+    namespace ports {
+        class MetricsProvider {
+            <<interface>>
+            +get_metrics()* dict~str,float~
+        }
+        class AlertObserver {
+            <<interface>>
+            +update(alerta: Alert)* None
+        }
+        class ConfigProvider {
+            <<interface>>
+            +get_thresholds()* dict~str,float~
+            +check_interval_seconds()* float
+        }
+    }
+
+    namespace domain {
+        class Microservice {
+            <<Context State>>
+            +str nombre
+            -ServiceState _estado
+            +estado() ServiceState
+            +record_cycle(detectadas: list~Alert~) list~Alert~
+            +start_maintenance() None
+            +end_maintenance() None
+        }
+        class ServiceState {
+            <<abstract State>>
+            +Severity severidad
+            +nombre()* str
+            +on_cycle(alertas: list~Alert~)* ServiceState
+            +emit(alertas: list~Alert~) list~Alert~
+            +start_maintenance() ServiceState
+            +end_maintenance() ServiceState
+        }
+        class HealthyState {
+            <<ConcreteState>>
+        }
+        class DegradedState {
+            <<ConcreteState>>
+            +int ciclos_en_alerta
+        }
+        class CriticalState {
+            <<ConcreteState>>
+            +int ciclos_sanos
+        }
+        class MaintenanceState {
+            <<ConcreteState>>
+        }
+        class MetricEvaluator {
+            <<Context Strategy>>
+            -dict~str,EvaluationRule~ _reglas
+            -EvaluationRule _regla_por_defecto
+            -dict~str,deque~ _historial
+            +rule_for(metrica: str) EvaluationRule
+            +evaluate(metricas: dict, umbrales: dict) list~Alert~
+        }
+        class EvaluationRule {
+            <<abstract Strategy>>
+            +criterio()* str
+            +evaluate(historial: Sequence, umbral: float)* Violation
+        }
+        class ThresholdRule {
+            <<ConcreteStrategy>>
+        }
+        class MovingAverageRule {
+            <<ConcreteStrategy>>
+            -int _ventana
+        }
+        class SpikeRule {
+            <<ConcreteStrategy>>
+            -float _max_incremento
+        }
+        class Violation {
+            <<value object>>
+            +float valor
+            +float limite
+        }
+        class Alert {
+            <<value object>>
+            +str nombre_servicio
+            +str metrica
+            +float valor
+            +float umbral
+            +Severity severidad
+            +str criterio
+            +message() str
+        }
+        class Severity {
+            <<enumeration>>
+            WARNING
+            CRITICAL
+        }
+    }
+
+    %% Facade y Observer
+    MonitoringFacade *-- "0..*" ServiceMonitor : crea y coordina
+    MonitoringFacade o-- "0..*" AlertObserver
+    MonitoringFacade --> ConfigProvider
+    ServiceMonitor o-- "0..*" AlertObserver : notifica
+    ServiceMonitor --> MetricsProvider : lee métricas
+    ServiceMonitor --> ConfigProvider : lee umbrales
+    ServiceMonitor *-- MetricEvaluator
+    ServiceMonitor *-- Microservice
+    AlertObserver ..> Alert
+
+    %% State
+    Microservice o-- ServiceState : estado actual
+    HealthyState --|> ServiceState
+    DegradedState --|> ServiceState
+    CriticalState --|> ServiceState
+    MaintenanceState --|> ServiceState
+    ServiceState ..> Alert : asigna severidad
+    ServiceState --> Severity
+
+    %% Strategy
+    MetricEvaluator o-- "1..*" EvaluationRule : una por métrica
+    ThresholdRule --|> EvaluationRule
+    MovingAverageRule --|> EvaluationRule
+    SpikeRule --|> EvaluationRule
+    EvaluationRule ..> Violation : retorna
+    MetricEvaluator ..> Alert : crea
+    Alert --> Severity
