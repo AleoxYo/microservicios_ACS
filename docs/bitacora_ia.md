@@ -85,7 +85,19 @@ Cuando hay código, se hace un commit con la versión de la IA y otro con la cor
   - `nombre` está declarado como propiedad abstracta, pero las subclases lo definen como atributo de clase. ¿Es correcto o confuso?
   - `CYCLES_TO_CRITICAL` y `CYCLES_TO_RECOVER` son constantes fijas. ¿Deberían venir de la configuración (`ConfigProvider`)?
   - Se crea un objeto de estado nuevo en cada transición. ¿Es un problema o una ventaja (inmutabilidad)?
-- **Corrección manual:** _(completar)_
+- **Corrección:** el código lo implementó la IA, a pedido del estudiante y siguiendo su decisión.
+  - **Qué estaba mal:** DEGRADADO enviaba una advertencia en **cada** ciclo con la métrica alta, no solo al entrar.
+    Era el mismo aviso repetido, así que el *flapping* no quedaba resuelto.
+  - **Evidencia antes del cambio:**
+    - Demo, sección 5: `CPU 98% -> DEGRADADO (1 alertas)`. El servicio ya estaba en DEGRADADO y volvió a avisar.
+    - Prueba nueva `test_degradado_avisa_solo_al_entrar`: falló con `AssertionError: assert [Alert(...)] == []`.
+  - **Cambio:** `DegradedState` sobrescribe `emit()` y devuelve `[]` cuando `ciclos_en_alerta > 1`
+    (`domain/service_state.py`). No se tocó `Microservice` ni los otros estados: el cambio queda dentro del estado,
+    que es lo que permite el patrón State.
+  - **Evidencia después:** 45 pruebas pasan. En la sección 5 la línea queda `CPU 98% -> DEGRADADO (0 alertas)`.
+    En la sección 6, la regla `umbral` baja de 4 a 3 alertas, porque esa demo también pasa por los estados.
+  - **Decisión del estudiante:** CRITICO **sigue avisando en cada ciclo** con la métrica alta. Un servicio crítico
+    debe seguir avisando hasta que alguien lo atienda.
 
 ## Entrada 05 — Fase 4: patrón Strategy (cierra A3)
 

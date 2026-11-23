@@ -116,7 +116,7 @@ def main() -> None:
         alertas = comparacion.run_monitoring(ciclos=1)
         por_regla = {nombre: sum(a.nombre_servicio == nombre for a in alertas) for nombre in reglas}
         print(f"CPU {muestra}% -> alertas por regla: {por_regla}")
-    print("  umbral: alerta en cada pico | promedio: solo cuando la carga se sostiene | pico: en cada subida > 20 puntos")
+    print("  umbral: alerta al entrar a cada estado (Degradado no repite) | promedio: solo cuando la carga se sostiene | pico: en cada subida > 20 puntos")
 
 
 if __name__ == "__main__":

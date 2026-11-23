@@ -35,10 +35,10 @@ Ensáyalas antes. Todas se hacen desde la carpeta `proyecto_final/`.
 | 2. Adapter | La respuesta cruda de cada API frente a `get_metrics()` normalizado |
 | 3. Factory + Facade + Observer | "Cargados 3 canales y 2 servicios" desde el JSON; cada alerta llega a Email, Slack y Log |
 | 4. Singleton en caliente | Al subir el umbral a 95 % ya no hay alertas |
-| 5. State | 97 → 98 → 99 % = DEGRADADO, DEGRADADO, CRITICO; un 60 % aislado **no** lo saca de CRITICO (histéresis); en mantenimiento, 0 alertas |
-| 6. Strategy | La misma serie con 3 reglas: umbral 4 alertas, promedio 1, pico 2 |
+| 5. State | 97 → 98 → 99 % = DEGRADADO (avisa solo al entrar), DEGRADADO sin aviso, CRITICO; un 60 % aislado **no** lo saca de CRITICO (histéresis); en mantenimiento, 0 alertas |
+| 6. Strategy | La misma serie con 3 reglas: umbral 3 alertas, promedio 1, pico 2 |
 
-**B. Pruebas:** `python -m pytest -v` → 44 pruebas. Nombra las `test_ocp_*` y las `test_lsp_*`.
+**B. Pruebas:** `python -m pytest -v` → 45 pruebas. Nombra las `test_ocp_*` y las `test_lsp_*`.
 
 **C. Romper la arquitectura en vivo (la más convincente):**
 1. Agrega `from adapters.monitoring_config import MonitoringConfig` al inicio de `domain/alert.py`.
@@ -176,7 +176,7 @@ No: no implementa lógica, solo delega (crea monitores, suscribe canales, recorr
 | Problema en lo que propuso la IA | Entrada | Dificultad de corregir |
 |---|---|---|
 | La prueba de A4 no demuestra una condición de carrera (pasaría sin el lock) | 03 | Media |
-| DEGRADADO emite una advertencia en **cada** ciclo: el *flapping* no se resuelve del todo | 04 | Baja |
+| ~~DEGRADADO emite una advertencia en **cada** ciclo~~ ✅ corregido: avisa solo al entrar | 04 | Baja |
 | `emit()` decide con `if self.severidad is None` en vez de polimorfismo | 04 | Baja |
 | `SpikeRule` ignora el umbral; el mensaje muestra "35.0%" cuando son puntos | 05 | Baja |
 | `ServiceMonitor` crea un `MetricEvaluator` por defecto (dependencia oculta, igual que A1) | 05 | Baja |

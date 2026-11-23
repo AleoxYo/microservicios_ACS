@@ -77,6 +77,12 @@ class DegradedState(ServiceState):
         ciclos = self.ciclos_en_alerta + 1
         return CriticalState() if ciclos >= CYCLES_TO_CRITICAL else DegradedState(ciclos)
 
+    def emit(self, alertas: list[Alert]) -> list[Alert]:
+        """Avisa solo al entrar a Degradado; si ya estaba aquí no repite la advertencia."""
+        if self.ciclos_en_alerta > 1:
+            return []
+        return super().emit(alertas)
+
     def __repr__(self) -> str:
         return f"DegradedState(ciclos_en_alerta={self.ciclos_en_alerta})"
 

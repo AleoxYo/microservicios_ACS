@@ -17,7 +17,7 @@ Requiere Python 3.10+ (solo librería estándar); `pytest` para las pruebas.
 
 ```bash
 python main.py          # demostración de los 7 patrones (6 secciones)
-python -m pytest        # 44 pruebas, incluido el test de arquitectura
+python -m pytest        # 45 pruebas, incluido el test de arquitectura
 ```
 
 ## Estructura

@@ -59,6 +59,14 @@ def test_ciclo_sano_en_critico_no_emite_alertas() -> None:
     assert servicio.record_cycle(detectar(NORMAL)) == []
 
 
+def test_degradado_avisa_solo_al_entrar() -> None:
+    servicio = Microservice("svc")
+    primera = servicio.record_cycle(detectar(ALTA))
+    segunda = servicio.record_cycle(detectar(ALTA))
+    assert len(primera) == 1
+    assert segunda == []
+
+
 def test_mantenimiento_suprime_alertas_y_al_salir_queda_saludable() -> None:
     servicio = Microservice("svc")
     recorrer(servicio, [ALTA, ALTA, ALTA])
