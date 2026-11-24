@@ -372,7 +372,7 @@ classDiagram
     AlertObserver ..> Alert
 
     %% State
-    Microservice o-- ServiceState : estado actual
+    Microservice *-- ServiceState : estado actual
     HealthyState --|> ServiceState
     DegradedState --|> ServiceState
     CriticalState --|> ServiceState

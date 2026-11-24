@@ -2,8 +2,9 @@
 
 **Herramienta:** Claude Code (modelo Claude Opus 5.5), usado como asistente / par programador.
 **Regla de trabajo:** toda propuesta de la IA se revisa antes de aceptarla. Cada entrada registra el prompt,
-lo que propuso la IA, los problemas que yo (el estudiante) detecté y la corrección manual aplicada.
-Cuando hay código, se hace un commit con la versión de la IA y otro con la corrección, para que el `git diff` sirva de evidencia.
+lo que propuso la IA, la auditoría del estudiante, la decisión final y, cuando hace falta, la corrección aplicada.
+El commit inicial contiene la versión de la IA; cada corrección va en un commit propio, para que el `git diff`
+sirva de evidencia del antes y el después.
 
 **Categorías de problema:** `Violación de capa` · `SOLID` · `Patrón mal aplicado` · `Bug` · `Concurrencia` · `Sobre-ingeniería`
 
@@ -216,7 +217,7 @@ Cuando hay código, se hace un commit con la versión de la IA y otro con la cor
   el GoF clásico es que el Creator no tiene una operación propia que use `create()`; agregarla solo para cumplir la
   forma sería complejidad innecesaria. No es Abstract Factory porque no crea familias de productos relacionados.
   Los demás puntos quedan como limitaciones documentadas.
-- **Corrección manual:** _(completar)_
+- **Corrección:** no aplica. Se decidió mantener el diseño y justificarlo (ver decisión final).
 
 ## Entrada 07 — Fase 6: diagramas UML, documento de arquitectura y README
 
@@ -244,7 +245,10 @@ Cuando hay código, se hace un commit con la versión de la IA y otro con la cor
   - La sintaxis de los diagramas no se validó con una herramienta. Se revisaron en GitHub y los 5 diagramas se dibujan correctamente.
   - La justificación de por qué no se eligió arquitectura dirigida por eventos hay que poder explicarla en la defensa.
 - **Decisión final:** cambiar la relación a composición.
-- **Corrección manual:** _(completar)_
+- **Corrección:** el cambio lo implementó la IA, a pedido del estudiante y siguiendo su decisión.
+  - **Qué estaba mal:** `Microservice o-- ServiceState` estaba dibujado como agregación, pero el estado no existe
+    por fuera del servicio: `Microservice` lo crea al iniciar y lo reemplaza en cada transición.
+  - **Cambio:** la relación pasa a composición (`*--`) en `docs/uml/clases_nucleo.mmd` y en `docs/arquitectura.md`.
 
 ## Entrada 08 — Fase 7: guía de sustentación
 

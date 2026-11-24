@@ -18,6 +18,8 @@ Requiere Python 3.10+ (solo librería estándar); `pytest` para las pruebas.
 ```bash
 python main.py          # demostración de los 7 patrones (6 secciones)
 python -m pytest        # 46 pruebas, incluido el test de arquitectura
+python -m demos.romper_arquitectura                         # el test de arquitectura detecta un import prohibido
+python -m demos.cargar_config demos/config/regla_promedio.json  # mismo sistema, otra regla, sin tocar código
 ```
 
 ## Estructura
@@ -45,6 +47,7 @@ adapters/      Conexión con el exterior.
   json_config_loader.py  JsonConfigLoader: arma el sistema desde JSON
 config/servicios.json  Umbrales, intervalo, canales, servicios y reglas.
 main.py        Composition root: único lugar que conoce las clases concretas.
+demos/         Scripts para la sustentación (también son composition roots) y JSON de ejemplo.
 tests/         Pruebas por patrón + test_arquitectura.py.
 docs/          Arquitectura, UML (docs/uml/*.mmd), plan y bitácora de IA.
 ```
