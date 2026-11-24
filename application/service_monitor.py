@@ -18,11 +18,11 @@ class ServiceMonitor:
         servicio: Microservice,
         proveedor: MetricsProvider,
         config: ConfigProvider,
-        evaluador: MetricEvaluator | None = None,
+        evaluador: MetricEvaluator,
     ) -> None:
         self._servicio = servicio
         self._proveedor = proveedor
-        self._evaluador = evaluador or MetricEvaluator(servicio.nombre)
+        self._evaluador = evaluador  # inyectado: el monitor no crea sus dependencias
         self._observadores: list[AlertObserver] = []
         self._config = config  # A1: inyectada, ya no se llama MonitoringConfig() aquí
 

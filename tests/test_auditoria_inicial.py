@@ -8,6 +8,7 @@ from adapters.monitoring_config import MonitoringConfig
 from application.monitoring_facade import MonitoringFacade
 from application.service_monitor import ServiceMonitor
 from domain.alert import Alert
+from domain.metric_evaluator import MetricEvaluator
 from domain.microservice import Microservice
 from ports.alert_observer import AlertObserver
 from ports.config_provider import ConfigProvider
@@ -60,7 +61,13 @@ def test_a1_a2_fachada_funciona_con_config_inyectada_y_proveedor_sin_cpu() -> No
     assert fachada.get_status()["reportes"] == "DEGRADADO"
 
 
-def test_a4_escrituras_concurrentes_no_pierden_umbrales() -> None:
+def test_a4_escrituras_concurrentes_no_se_pierden() -> None:
+    """Solo verifica que 200 escrituras desde hilos distintos no se pierdan.
+
+    No demuestra que el lock evite una condición de carrera: sin el lock también pasa, porque en CPython
+    asignar una clave de un diccionario ya es atómico (GIL). El lock se mantiene para proteger operaciones
+    compuestas, como copiar el diccionario mientras otro hilo escribe.
+    """
     config = MonitoringConfig()
     hilos = [
         threading.Thread(target=config.set_threshold, args=(f"metrica_{i}", 50.0))
@@ -75,7 +82,9 @@ def test_a4_escrituras_concurrentes_no_pierden_umbrales() -> None:
 
 
 def test_a5_un_canal_que_falla_no_impide_notificar_a_los_demas() -> None:
-    monitor = ServiceMonitor(Microservice("pagos"), ProveedorSoloMemoria(), ConfigFija({"memoria": 90.0}))
+    monitor = ServiceMonitor(
+        Microservice("pagos"), ProveedorSoloMemoria(), ConfigFija({"memoria": 90.0}), MetricEvaluator("pagos")
+    )
     canal_ok = CanalMemoria()
     monitor.attach(CanalRoto())
     monitor.attach(canal_ok)
@@ -86,7 +95,7 @@ def test_a5_un_canal_que_falla_no_impide_notificar_a_los_demas() -> None:
 
 
 def test_a6_detach_de_un_canal_no_suscrito_no_lanza_error() -> None:
-    monitor = ServiceMonitor(Microservice("pagos"), ProveedorSoloMemoria(), ConfigFija({}))
+    monitor = ServiceMonitor(Microservice("pagos"), ProveedorSoloMemoria(), ConfigFija({}), MetricEvaluator("pagos"))
     monitor.detach(CanalMemoria())  # no debe lanzar ValueError
 
 
@@ -97,3 +106,9 @@ def test_singleton_sigue_siendo_unico() -> None:
 def test_umbral_fuera_de_rango_se_rechaza() -> None:
     with pytest.raises(ValueError):
         MonitoringConfig().set_threshold("cpu", 150.0)
+
+
+def test_monitor_exige_que_le_inyecten_el_evaluador() -> None:
+    # Antes, si no se pasaba, ServiceMonitor creaba su propio MetricEvaluator (dependencia oculta, igual que A1).
+    with pytest.raises(TypeError):
+        ServiceMonitor(Microservice("pagos"), ProveedorSoloMemoria(), ConfigFija({}))

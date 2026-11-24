@@ -87,8 +87,13 @@ Cuando hay código, se hace un commit con la versión de la IA y otro con la cor
   - Quitar `get_cpu_usage()` elimina un método que pedía el ejercicio original; se acepta porque obligaba a todo
     proveedor a tener CPU (ISP).
 - **Decisión final:** el lock se queda (protege lecturas compuestas, como copiar el diccionario). La prueba de A4 se
-  debe corregir o renombrar para que no prometa algo que no verifica.
-- **Corrección manual:** _(completar con lo que cambies y el hash de los commits antes/después)_
+  renombra para que no prometa algo que no verifica.
+- **Corrección:** el código lo implementó la IA, a pedido del estudiante y siguiendo su decisión.
+  - **Qué estaba mal:** `test_a4_escrituras_concurrentes_no_pierden_umbrales` aparentaba probar el lock, pero sin el
+    lock también pasaba.
+  - **Cambio:** se renombró a `test_a4_escrituras_concurrentes_no_se_pierden` y se le agregó un comentario que explica
+    qué verifica y qué no (`tests/test_auditoria_inicial.py`). No se intentó forzar una condición de carrera porque en
+    CPython depende del GIL y daría una prueba inestable.
 
 ## Entrada 04 — Fase 3: patrón State (corrige parte de A3)
 
@@ -163,8 +168,17 @@ Cuando hay código, se hace un commit con la versión de la IA y otro con la cor
     Son 39 **puntos** de subida, no un porcentaje; además el campo `Alert.umbral` guarda un incremento.
   - `SpikeRule.evaluate()` recibe `umbral` y no lo usa; es dudoso frente a LSP, porque el contrato de `evaluate()`
     dice que evalúa contra un umbral.
-- **Decisión final:** hacer obligatorio el parámetro `evaluador` y ajustar el mensaje de la regla de pico.
-- **Corrección manual:** _(completar)_
+- **Decisión final:** hacer obligatorio el parámetro `evaluador`. El mensaje de la regla de pico queda como limitación
+  documentada.
+- **Corrección:** el código lo implementó la IA, a pedido del estudiante y siguiendo su decisión.
+  - **Qué estaba mal:** `ServiceMonitor` creaba su propio `MetricEvaluator` si no se lo pasaban
+    (`evaluador or MetricEvaluator(...)`): una dependencia oculta, el mismo error que se había corregido en A1.
+  - **Evidencia antes del cambio:** la prueba nueva `test_monitor_exige_que_le_inyecten_el_evaluador` falló con
+    `Failed: DID NOT RAISE <class 'TypeError'>`, es decir, el monitor se creaba sin evaluador.
+  - **Cambio:** `evaluador` pasa a ser un parámetro obligatorio de `ServiceMonitor.__init__`
+    (`application/service_monitor.py`). La fachada ya lo pasaba, así que no cambió; las pruebas de A5 y A6 ahora lo
+    inyectan explícitamente.
+  - **Evidencia después:** 46 pruebas pasan y la salida de `main.py` no cambia.
 
 ## Entrada 06 — Fase 5: Factory Method + configuración JSON (cierra A7)
 
@@ -197,8 +211,11 @@ Cuando hay código, se hace un commit con la versión de la IA y otro con la cor
   - `JsonConfigLoader.load()` construye objetos **y** modifica la configuración global: son dos responsabilidades (SRP).
   - `FactoryRegistry.create()` convierte cualquier `KeyError` en "Falta el parámetro", y dos servicios con el mismo
     nombre se reemplazan sin avisar.
-- **Decisión final:** [justificar en la defensa por qué se considera Factory Method / agregar al Creator una
-  operación propia]. Los demás puntos quedan como limitaciones documentadas.
+- **Decisión final:** se mantiene y se justifica como Factory Method: `Factory[T]` es el Creator abstracto que declara
+  el método fábrica `create()`, y cada fábrica concreta (ConcreteCreator) decide qué producto crea. La diferencia con
+  el GoF clásico es que el Creator no tiene una operación propia que use `create()`; agregarla solo para cumplir la
+  forma sería complejidad innecesaria. No es Abstract Factory porque no crea familias de productos relacionados.
+  Los demás puntos quedan como limitaciones documentadas.
 - **Corrección manual:** _(completar)_
 
 ## Entrada 07 — Fase 6: diagramas UML, documento de arquitectura y README
