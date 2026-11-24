@@ -47,5 +47,5 @@ La regla se verifica automáticamente en `tests/test_arquitectura.py`.
 | 3 | State | ✅ |
 | 4 | Strategy | ✅ |
 | 5 | Factory Method + `config/servicios.json` | ✅ |
-| 6 | Tests, UML (componentes, clases, secuencia, estados), README, `docs/arquitectura.md` | ✅ (falta validar el render de los diagramas) |
+| 6 | Tests, UML (componentes, clases, secuencia, estados), README, `docs/arquitectura.md` | ✅ (diagramas revisados en GitHub) |
 | 7 | Preparación de la defensa (`docs/defensa.md`) | ✅ |

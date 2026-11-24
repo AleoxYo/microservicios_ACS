@@ -99,4 +99,3 @@ estado nuevo (`ServiceState`). Las pruebas `test_ocp_*` lo demuestran.
 - [Diagramas UML fuente (Mermaid)](docs/uml/)
 - [Bitácora de uso de IA](docs/bitacora_ia.md)
 - [Plan y estado de avance](docs/PLAN.md)
-- [Guía de sustentación](docs/defensa.md)

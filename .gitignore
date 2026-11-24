@@ -3,3 +3,7 @@ __pycache__/
 .pytest_cache/
 *.zip
 *.rar
+
+# Material de estudio (no se entrega)
+docs/defensa.md
+docs/ejemplos_auditoria.md
