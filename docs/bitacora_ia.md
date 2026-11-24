@@ -16,8 +16,8 @@ sirva de evidencia del antes y el después.
 - **Objetivo:** organizar el Proyecto Final 1 sobre el ejercicio 2 (sistema de monitoreo de microservicios) en fases
   progresivas, para avanzar y verificar una cosa a la vez.
 - **Prompt:**
-  > Divide el proyecto en 8 fases a partir del ejercicio 2 de microservicios, donde cada fase realice una acción progresiva: primero auditar el código existente y migrarlo a arquitectura hexagonal, luego agregar un patrón GoF por fase, y al final la documentación, los diagramas UML y la preparación de la sustentación.
-- **Qué propuso la IA:** 8 fases (0 a 7):
+  > Divide el proyecto en 7 fases a partir del ejercicio 2 de microservicios, donde cada fase realice una acción progresiva: primero auditar el código existente y migrarlo a arquitectura hexagonal, luego agregar un patrón GoF por fase, y al final la documentación y los diagramas UML.
+- **Qué propuso la IA:** 7 fases (0 a 6):
 
   | Fase | Contenido |
   |---|---|
@@ -28,7 +28,6 @@ sirva de evidencia del antes y el después.
   | 4 | Patrón Strategy |
   | 5 | Factory Method y configuración en JSON |
   | 6 | UML, documento de arquitectura y README |
-  | 7 | Preparación de la sustentación |
 
 - **Auditoría del estudiante:**
   - Cada fase deja el proyecto funcionando y se puede verificar por separado con las pruebas y la demo, así que si
@@ -37,7 +36,7 @@ sirva de evidencia del antes y el después.
     alguno resulta forzado. Cada patrón tiene que eliminar un problema real del sistema.
   - El plan no tenía tiempos ni fechas.
   - La IA no puede saber si el profesor acepta reutilizar un ejercicio del curso.
-- **Decisión final:** se aceptan las 8 fases. El profesor confirmó que se puede reutilizar el ejercicio 2.
+- **Decisión final:** se aceptan las 7 fases. El profesor confirmó que se puede reutilizar el ejercicio 2.
 
 ## Entrada 02 — Plan de trabajo
 
@@ -249,21 +248,6 @@ sirva de evidencia del antes y el después.
   - **Qué estaba mal:** `Microservice o-- ServiceState` estaba dibujado como agregación, pero el estado no existe
     por fuera del servicio: `Microservice` lo crea al iniciar y lo reemplaza en cada transición.
   - **Cambio:** la relación pasa a composición (`*--`) en `docs/uml/clases_nucleo.mmd` y en `docs/arquitectura.md`.
-
-## Entrada 08 — Fase 7: guía de sustentación
-
-- **Fecha:** 2026-11-22
-- **Prompt:**
-  > Ahora prepara una guía de sustentación con un guion de 10 minutos, demos en vivo, preguntas probables por cada criterio de la rúbrica con sus respuestas, y una lista de defectos reales del código generado por la IA.
-- **Qué propuso la IA:** `docs/defensa.md` con un guion de 10 minutos, 4 demos preparadas (incluida romper la
-  arquitectura en vivo), preguntas probables con respuestas cortas para cada criterio de la rúbrica, una tabla con los
-  problemas detectados en el código de la IA (entradas 03–06) que quedan por corregir y un checklist de entrega.
-- **Auditoría del estudiante:**
-  - Algunas respuestas de la guía dependen de correcciones pendientes (Factory Method, evaluador obligatorio).
-  - El guion suponía 10 minutos con un solo expositor. La defensa dura 10 minutos, pero son **5 por integrante**,
-    así que el guion se reescribió dividido en dos partes.
-  - La guía contiene las respuestas a las preguntas; no va en el zip de entrega.
-- **Decisión final:** actualizar la guía cuando terminen las correcciones.
 
 ---
 

@@ -47,7 +47,7 @@ adapters/      Conexión con el exterior.
   json_config_loader.py  JsonConfigLoader: arma el sistema desde JSON
 config/servicios.json  Umbrales, intervalo, canales, servicios y reglas.
 main.py        Composition root: único lugar que conoce las clases concretas.
-demos/         Scripts para la sustentación (también son composition roots) y JSON de ejemplo.
+demos/         Scripts de demostración (también son composition roots) y JSON de ejemplo.
 tests/         Pruebas por patrón + test_arquitectura.py.
 docs/          Arquitectura, UML (docs/uml/*.mmd), plan y bitácora de IA.
 ```
